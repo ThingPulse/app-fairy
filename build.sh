@@ -5,5 +5,5 @@ pyinstaller --log-level=DEBUG \
             build-on-mac.spec
 
 #https://github.com/sindresorhus/create-dmg
-#
-#create-dmg NodeMCU-PyFlasher-3.0.app
+create-dmg --overwrite "dist/ThingPulse App Fairy.app"
+mv "ThingPulse App Fairy 0.0.0.dmg" "dist/ThingPulse-App-Fairy.dmg"

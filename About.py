@@ -30,7 +30,7 @@ class AboutDlg(wx.Dialog):
     href="https://github.com/marcelstoer/nodemcu-pyflasher">project on GitHub</a>.</p>
 
     <p>This application was built from the <a style="color: #004CE5;" 
-    href="https://github.com/thingpulse/nodemcu-pyflasher">ThingPulse fork</a> on GitHub.</p>
+    href="https://github.com/thingpulse/app-fairy">ThingPulse fork</a> on GitHub.</p>
     
     <p>For help and support, please visit <a style="color: #004CE5;" 
     href="https://support.thingpulse.com">support.thingpulse.com</a>.
