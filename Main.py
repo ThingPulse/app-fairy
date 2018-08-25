@@ -17,21 +17,8 @@ from esptool import ESPLoader
 from esptool import NotImplementedInROMError
 from argparse import Namespace
 
-__version__ = "3.0"
-__flash_help__ = '''
-<p>This setting is highly dependent on your device!<p>
-<p>
-  Details at <a style="color: #004CE5;"
-        href="https://www.esp32.com/viewtopic.php?p=5523&sid=08ef44e13610ecf2a2a33bb173b0fd5c#p5523">http://bit.ly/2v5Rd32</a>
-  and in the <a style="color: #004CE5;" href="https://github.com/espressif/esptool/#flash-modes">esptool
-  documentation</a>
-<ul>
-  <li>Most ESP32 and ESP8266 ESP-12 use DIO.</li>
-  <li>Most ESP8266 ESP-01/07 use QIO.</li>
-  <li>ESP8285 requires DOUT.</li>
-</ul>
-</p>
-'''
+__version__ = "1.0"
+__app_name__ = "ThingPulse App Fairy"
 __supported_baud_rates__ = [9600, 57600, 74880, 115200, 230400, 460800, 921600]
 
 # ---------------------------------------------------------------------------
@@ -251,9 +238,8 @@ class NodeMcuFlasher(wx.Frame):
             sizer.Add(radio_button)
             sizer.AddSpacer(10)
 
-        add_flash_mode_radio_button(flashmode_boxsizer, 0, "qio", "Quad I/O (QIO)")
-        add_flash_mode_radio_button(flashmode_boxsizer, 1, "dio", "Dual I/O (DIO)")
-        add_flash_mode_radio_button(flashmode_boxsizer, 2, "dout", "Dual Output (DOUT)")
+        add_flash_mode_radio_button(flashmode_boxsizer, 0, "qio", "QIO: ESPaper / Color Kit")
+        add_flash_mode_radio_button(flashmode_boxsizer, 1, "dio", "DIO: Starter Kit")
 
         erase_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -270,47 +256,28 @@ class NodeMcuFlasher(wx.Frame):
         add_erase_radio_button(erase_boxsizer, 0, False, "no", erase is False)
         add_erase_radio_button(erase_boxsizer, 1, True, "yes, wipes all data", erase is True)
 
-        button = wx.Button(panel, -1, "Flash NodeMCU")
+        button = wx.Button(panel, -1, "Install Application")
         button.Bind(wx.EVT_BUTTON, on_clicked)
 
         self.console_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
         self.console_ctrl.SetFont(wx.Font(13, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        self.console_ctrl.SetBackgroundColour(wx.BLACK)
-        self.console_ctrl.SetForegroundColour(wx.RED)
-        self.console_ctrl.SetDefaultStyle(wx.TextAttr(wx.RED))
+        self.console_ctrl.SetBackgroundColour(wx.WHITE)
+        self.console_ctrl.SetForegroundColour(wx.BLUE)
+        self.console_ctrl.SetDefaultStyle(wx.TextAttr(wx.BLUE))
 
         port_label = wx.StaticText(panel, label="Serial port")
-        file_label = wx.StaticText(panel, label="NodeMCU firmware")
+        file_label = wx.StaticText(panel, label="Application file")
         baud_label = wx.StaticText(panel, label="Baud rate")
         flashmode_label = wx.StaticText(panel, label="Flash mode")
 
-        def on_info_hover(event):
-            from HtmlPopupTransientWindow import HtmlPopupTransientWindow
-            win = HtmlPopupTransientWindow(self, wx.SIMPLE_BORDER, __flash_help__, "#FFB6C1", (410, 140))
-
-            image = event.GetEventObject()
-            image_position = image.ClientToScreen((0, 0))
-            image_size = image.GetSize()
-            win.Position(image_position, (0, image_size[1]))
-
-            win.Popup()
-
-        icon = wx.StaticBitmap(panel, wx.ID_ANY, images.Info.GetBitmap())
-        icon.Bind(wx.EVT_MOTION, on_info_hover)
-
-        flashmode_label_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
-        flashmode_label_boxsizer.Add(flashmode_label, 1, wx.EXPAND)
-        flashmode_label_boxsizer.AddStretchSpacer(0)
-        flashmode_label_boxsizer.Add(icon, 0, wx.ALIGN_RIGHT, 20)
-
-        erase_label = wx.StaticText(panel, label="Erase flash")
+        erase_label = wx.StaticText(panel, label="Erase memory")
         console_label = wx.StaticText(panel, label="Console")
 
         fgs.AddMany([
                     port_label, (serial_boxsizer, 1, wx.EXPAND),
                     file_label, (file_picker, 1, wx.EXPAND),
                     baud_label, baud_boxsizer,
-                    flashmode_label_boxsizer, flashmode_boxsizer,
+                    flashmode_label, flashmode_boxsizer,
                     erase_label, erase_boxsizer,
                     (wx.StaticText(panel, label="")), (button, 1, wx.EXPAND),
                     (console_label, 1, wx.EXPAND), (self.console_ctrl, 1, wx.EXPAND)])
@@ -340,7 +307,7 @@ class NodeMcuFlasher(wx.Frame):
     def _build_status_bar(self):
         self.statusBar = self.CreateStatusBar(2, wx.STB_SIZEGRIP)
         self.statusBar.SetStatusWidths([-2, -1])
-        status_text = "Welcome to NodeMCU PyFlasher %s" % __version__
+        status_text = "Welcome to " + __app_name__ + " %s" % __version__
         self.statusBar.SetStatusText(status_text, 0)
 
     def _build_menu_bar(self):
@@ -349,14 +316,14 @@ class NodeMcuFlasher(wx.Frame):
         # File menu
         file_menu = wx.Menu()
         wx.App.SetMacExitMenuItemId(wx.ID_EXIT)
-        exit_item = file_menu.Append(wx.ID_EXIT, "E&xit\tCtrl-Q", "Exit NodeMCU PyFlasher")
+        exit_item = file_menu.Append(wx.ID_EXIT, "E&xit\tCtrl-Q", "Exit " + __app_name__)
         exit_item.SetBitmap(images.Exit.GetBitmap())
         self.Bind(wx.EVT_MENU, self._on_exit_app, exit_item)
         self.menuBar.Append(file_menu, "&File")
 
         # Help menu
         help_menu = wx.Menu()
-        help_item = help_menu.Append(wx.ID_ABOUT, '&About NodeMCU PyFlasher', 'About')
+        help_item = help_menu.Append(wx.ID_ABOUT, '&About ' + __app_name__, 'About')
         self.Bind(wx.EVT_MENU, self._on_help_about, help_item)
         self.menuBar.Append(help_menu, '&Help')
 
@@ -364,7 +331,7 @@ class NodeMcuFlasher(wx.Frame):
 
     @staticmethod
     def _get_config_file_path():
-        return wx.StandardPaths.Get().GetUserConfigDir() + "/nodemcu-pyflasher.json"
+        return wx.StandardPaths.Get().GetUserConfigDir() + "/thingpulse-app-fairy.json"
 
     # Menu methods
     def _on_exit_app(self, event):
@@ -407,7 +374,7 @@ class MySplashScreen(wx.adv.SplashScreen):
             self._show_main()
 
     def _show_main(self):
-        frame = NodeMcuFlasher(None, "NodeMCU PyFlasher")
+        frame = NodeMcuFlasher(None, __app_name__)
         frame.Show()
         if self.__fc.IsRunning():
             self.Raise()
@@ -419,7 +386,7 @@ class MySplashScreen(wx.adv.SplashScreen):
 class App(wx.App, wx.lib.mixins.inspection.InspectionMixin):
     def OnInit(self):
         wx.SystemOptions.SetOption("mac.window-plain-transition", 1)
-        self.SetAppName("NodeMCU PyFlasher")
+        self.SetAppName(__app_name__)
 
         # Create and show the splash screen.  It will then create and
         # show the main frame when it is time to do so.  Normally when

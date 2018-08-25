@@ -2,7 +2,7 @@
 
 block_cipher = None
 
-a = Analysis(['nodemcu-pyflasher.py'],
+a = Analysis(['app-fairy.py'],
              binaries=[],
              datas=[("images", "images")],
              hiddenimports=[],
@@ -19,7 +19,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='NodeMCU-PyFlasher-3.0',
+          name='ThingPulse-App-Fairy',
           debug=False,
           strip=False,
           upx=True,
