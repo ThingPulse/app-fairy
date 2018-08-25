@@ -25,6 +25,6 @@ exe = EXE(pyz,
           upx=True,
           console=False , icon='images/icon-256.icns')
 app = BUNDLE(exe,
-             name='ThingPulse-App-Fairy.app',
+             name='ThingPulse App Fairy.app',
              icon='./images/icon-256.icns',
              bundle_identifier='com.thingpulse.app-fairy')
