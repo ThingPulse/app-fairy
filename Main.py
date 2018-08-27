@@ -58,10 +58,13 @@ class FlashingThread(threading.Thread):
 
     def run(self):
         try:
+            print("esptool.py v%s" % esptool.__version__)
             initial_baud = min(ESPLoader.ESP_ROM_BAUD, self._config.baud)
 
             esp = ESPLoader.detect_chip(self._config.port, initial_baud)
             print("Chip is %s" % (esp.get_chip_description()))
+            print("Features: %s" % ", ".join(esp.get_chip_features()))
+            esptool.read_mac(esp, Namespace())
 
             esp = esp.run_stub()
 
@@ -90,7 +93,7 @@ class FlashingThread(threading.Thread):
                 esptool.erase_flash(esp, args)
             esptool.write_flash(esp, args)
             # The last line printed by esptool is "Leaving..." -> some indication that the process is done is needed
-            print("\nDone.")
+            print("\nDone. Unplug/replug or reset device.")
         except SerialException as e:
             self._parent.report_error(e.strerror)
             raise e
