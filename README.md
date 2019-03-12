@@ -5,7 +5,7 @@
 
 Self-contained installer based on [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) for ThingPulse applications
 
-![Image of NodeMCU PyFlasher GUI](images/gui.png)
+![Image of ThingPulse App Fairy](images/gui.png)
 
 ## Installation
 ThingPulse App Fairy does not have to be installed, just double-click it and it'll start. Check the [releases section]
@@ -22,9 +22,19 @@ support forum](https://support.thingpulse.com).
 ## Build it yourself
 If you want to build this application yourself you need to:
 
-- Install Python 3.x
-- Install [wxPython 4.x](https://wxpython.org/) manually or run `pip install wxpython`
-- Install [esptool.py](https://github.com/espressif/esptool#easy-installation)  and its dependencies manually or run `pip install esptool`
+- Install [Python 3.x](https://www.python.org/downloads/) and [Pip](https://pip.pypa.io/en/stable/installing/) (it comes with Python if installed from `python.org`).
+- Create a virtual environment with `python -m venv venv`
+- Activate the virtual environment with `. venv/bin/activate` (`. venv/Scripts/activate` if you are on Windows with [Cygwin](https://www.cygwin.com/) or [Mingw](http://mingw.org/))
+- Run `pip install -r requirements.txt`
+
+**A note on Linux:** As described on the [downloads section of `wxPython`](https://www.wxpython.org/pages/downloads/), wheels for Linux are complicated and may require you to run something like this to install `wxPython` correctly:
+
+```bash
+# Assuming you are running it on Ubuntu 18.04 LTS with GTK3
+pip install -U \
+    -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 \
+    wxPython
+```
 
 ## License
 [MIT](http://opensource.org/licenses/MIT) © Marcel Stör (a ThingPulse co-founder)

@@ -15,10 +15,13 @@ from serial import SerialException
 from serial.tools import list_ports
 from esptool import ESPLoader
 from esptool import NotImplementedInROMError
+from esptool import FatalError
 from argparse import Namespace
 
-__version__ = "1.0"
+__version__ = "2.0"
 __app_name__ = "ThingPulse App Fairy"
+__auto_select__ = "Auto-select"
+__auto_select_explanation__ = "(first port with Espressif device)"
 __supported_baud_rates__ = [9600, 57600, 74880, 115200, 230400, 460800, 921600]
 
 # ---------------------------------------------------------------------------
@@ -58,45 +61,33 @@ class FlashingThread(threading.Thread):
 
     def run(self):
         try:
-            print("esptool.py v%s" % esptool.__version__)
-            initial_baud = min(ESPLoader.ESP_ROM_BAUD, self._config.baud)
+            command = []
 
-            esp = ESPLoader.detect_chip(self._config.port, initial_baud)
-            print("Chip is %s" % (esp.get_chip_description()))
-            print("Features: %s" % ", ".join(esp.get_chip_features()))
-            esptool.read_mac(esp, Namespace())
+            if not self._config.port.startswith(__auto_select__):
+                command.append("--port")
+                command.append(self._config.port)
 
-            esp = esp.run_stub()
-
-            if self._config.baud > initial_baud:
-                try:
-                    esp.change_baud(self._config.baud)
-                except NotImplementedInROMError:
-                    print("WARNING: ROM doesn't support changing baud rate. Keeping initial baud rate %d." %
-                          initial_baud)
-
-            args = Namespace()
-            args.flash_size = "detect"
-            args.flash_mode = self._config.mode
-            args.flash_freq = "40m"
-            args.no_progress = False
-            args.no_stub = False
-            args.verify = False  # TRUE is deprecated
-            args.compress = True
-            args.addr_filename = [[int("0x00000", 0), open(self._config.firmware_path, 'rb')]]
-
-            print("Configuring flash size...")
-            esptool.detect_flash_size(esp, args)
-            esp.flash_set_parameters(esptool.flash_size_bytes(args.flash_size))
+            command.extend(["--baud", str(self._config.baud),
+                            "--after", "no_reset",
+                            "write_flash",
+                            "--flash_mode", self._config.mode,
+                            "0x00000", self._config.firmware_path])
 
             if self._config.erase_before_flash:
-                esptool.erase_flash(esp, args)
-            esptool.write_flash(esp, args)
-            # The last line printed by esptool is "Leaving..." -> some indication that the process is done is needed
-            print("\nDone. Unplug/replug or reset device.")
+                command.append("--erase-all")
+
+            print("Command: esptool.py %s\n" % " ".join(command))
+
+            esptool.main(command)
+
+            # The last line printed by esptool is "Staying in bootloader." -> some indication that the process is
+            # done is needed
+            print("\nApplication successfully installed. Unplug/replug or reset device \nto switch back to normal boot "
+                  "mode.")
         except SerialException as e:
             self._parent.report_error(e.strerror)
             raise e
+
 
 # ---------------------------------------------------------------------------
 
@@ -117,7 +108,7 @@ class FlashConfig:
         if os.path.exists(file_path):
             with open(file_path, 'r') as f:
                 data = json.load(f)
-            conf.port = data['port']
+            conf.port = data.get('port', "")
             conf.baud = data['baud']
             conf.mode = data['mode']
             conf.erase_before_flash = data['erase']
@@ -143,7 +134,7 @@ class FlashConfig:
 class NodeMcuFlasher(wx.Frame):
 
     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, -1, title, size=(700, 650),
+        wx.Frame.__init__(self, parent, -1, title, size=(725, 650),
                           style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self._config = FlashConfig.load(self._get_config_file_path())
 
@@ -154,9 +145,11 @@ class NodeMcuFlasher(wx.Frame):
 
         sys.stdout = RedirectText(self.console_ctrl)
 
-        self.SetMinSize((640, 480))
         self.Centre(wx.BOTH)
         self.Show(True)
+        print("Connect your device")
+        print("\nIf you chose the serial port auto-select feature you might need to ")
+        print("turn off Bluetooth")
 
     def _init_ui(self):
         def on_reload(event):
@@ -211,7 +204,7 @@ class NodeMcuFlasher(wx.Frame):
         file_picker.Bind(wx.EVT_FILEPICKER_CHANGED, on_pick_file)
 
         serial_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
-        serial_boxsizer.Add(self.choice, 1,  wx.EXPAND)
+        serial_boxsizer.Add(self.choice, 1, wx.EXPAND)
         serial_boxsizer.AddStretchSpacer(0)
         serial_boxsizer.Add(reload_button, 0, wx.ALIGN_RIGHT, 20)
 
@@ -263,7 +256,8 @@ class NodeMcuFlasher(wx.Frame):
         button.Bind(wx.EVT_BUTTON, on_clicked)
 
         self.console_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-        self.console_ctrl.SetFont(wx.Font(13, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        self.console_ctrl.SetFont(wx.Font((0, 13), wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
+                                          wx.FONTWEIGHT_NORMAL))
         self.console_ctrl.SetBackgroundColour(wx.WHITE)
         self.console_ctrl.SetForegroundColour(wx.BLUE)
         self.console_ctrl.SetDefaultStyle(wx.TextAttr(wx.BLUE))
@@ -299,7 +293,7 @@ class NodeMcuFlasher(wx.Frame):
 
     @staticmethod
     def _get_serial_ports():
-        ports = [""]
+        ports = [__auto_select__ + " " + __auto_select_explanation__]
         for port, desc, hwid in sorted(list_ports.comports()):
             ports.append(port)
         return ports

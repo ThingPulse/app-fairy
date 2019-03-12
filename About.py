@@ -35,8 +35,8 @@ class AboutDlg(wx.Dialog):
     <p>For help and support, please visit <a style="color: #004CE5;" 
     href="https://support.thingpulse.com">support.thingpulse.com</a>.
 
-    <p>Original work &copy; 2018 Marcel St&ouml;r.<br/>
-    Modifications &copy; 2018 ThingPulse, Ltd.<br/>
+    <p>Original work &copy; 2019 Marcel St&ouml;r.<br/>
+    Modifications &copy; 2019 ThingPulse, Ltd.<br/>
     Open source under the MIT license.</p>
 
     <p>
