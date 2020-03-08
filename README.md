@@ -8,8 +8,7 @@ Self-contained installer based on [NodeMCU PyFlasher](https://github.com/marcels
 ![Image of ThingPulse App Fairy](images/gui.png)
 
 ## Installation
-ThingPulse App Fairy does not have to be installed, just double-click it and it'll start. Check the [releases section]
-(https://github.com/thingpulse/app-fairy/releases) for downloads for your platform. For every release we provide a .exe 
+ThingPulse App Fairy does not have to be installed, just double-click it and it'll start. Check the [releases section](https://github.com/thingpulse/app-fairy/releases) for downloads for your platform. For every release we provide a .exe 
 file for Windows and a .dmg for macOS.
 
 ## Status
